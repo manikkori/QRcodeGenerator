@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Universal QR Generator</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f4f4f9;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
+      .container {
+        background: white;
+        padding: 2.5rem;
+        border-radius: 15px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        width: 350px;
+      }
+      h1 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-size: 26px;
+      }
+      p {
+        color: #7f8c8d;
+        margin-bottom: 20px;
+        font-size: 14px;
+      }
+
+      input {
+        width: 100%;
+        padding: 14px;
+        margin-bottom: 15px;
+        border: 2px solid #ecf0f1;
+        border-radius: 8px;
+        box-sizing: border-box;
+        font-size: 15px;
+        outline: none;
+        transition: border 0.3s;
+      }
+      input:focus {
+        border-color: #3498db;
+      }
+
+      button {
+        width: 100%;
+        padding: 14px;
+        background-color: #3498db;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        transition: background 0.3s;
+      }
+      button:hover {
+        background-color: #2980b9;
+      }
+
+      #qr-result {
+        margin-top: 25px;
+        display: none;
+      }
+      img {
+        max-width: 100%;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      }
+      .download-btn {
+        background-color: #27ae60;
+        margin-top: 15px;
+      }
+      .download-btn:hover {
+        background-color: #219150;
+      }
+      .loading {
+        color: #7f8c8d;
+        margin-top: 10px;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>QR Maker</h1>
+      <p>Type anything to generate a QR Code</p>
+
+      <input
+        type="text"
+        id="textInput"
+        placeholder="Enter text, link, or number..."
+      />
+
+      <button onclick="generateQR()">Generate QR</button>
+
+      <div class="loading" id="loading">Creating QR Code...</div>
+
+      <div id="qr-result">
+        <img id="qrImage" src="" alt="QR Code" />
+        <br />
+        <a id="downloadLink" href="#" download="qrcode.png">
+          <button class="download-btn">Download Image</button>
+        </a>
+      </div>
+    </div>
+
+    <script>
+      async function generateQR() {
+        const text = document.getElementById("textInput").value;
+        const loading = document.getElementById("loading");
+        const resultDiv = document.getElementById("qr-result");
+        const qrImage = document.getElementById("qrImage");
+        const downloadLink = document.getElementById("downloadLink");
+
+        if (!text) {
+          alert("Please write something first!");
+          return;
+        }
+
+        loading.style.display = "block";
+        resultDiv.style.display = "none";
+
+        try {
+          const response = await fetch("/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            // Ab hum 'text' key bhej rahe hain
+            body: JSON.stringify({ text: text }),
+          });
+
+          const data = await response.json();
+
+          if (data.image) {
+            qrImage.src = "data:image/png;base64," + data.image;
+            downloadLink.href = qrImage.src;
+
+            loading.style.display = "none";
+            resultDiv.style.display = "block";
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          alert("Something went wrong!");
+          loading.style.display = "none";
+        }
+      }
+    </script>
+  </body>
+</html>
